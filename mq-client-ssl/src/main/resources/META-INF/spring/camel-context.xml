@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:spring="http://camel.apache.org/schema/spring"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="client.properties" system-properties-mode="ENVIRONMENT" />
+
+    <bean id="amqSSL" class="org.apache.activemq.ActiveMQSslConnectionFactory" >
+        <property name="brokerURL" value="${BROKER_URL}" />
+        <property name="userName" value="${BROKER_USERNAME}" />
+        <property name="password" value="${BROKER_PASSWORD}" />
+        <property name="trustStore" value="${BROKER_TRUSTSTORE_FILE}" />
+        <property name="trustStorePassword" value="${BROKER_TRUSTSTORE_PASSWORD}" />
+    </bean>
+
+    <bean id="rb" class="com.ofbizian.route.SimpleAMQRouteBuilder">
+        <property name="producerOrConsumer" value="${AMQ_CLIENT_TYPE}"/>
+        <property name="endURI" value="${AMQ_CONSUMER_PRODUCER_END_URI}" />
+        <property name="startURI" value="${AMQ_CONSUMER_PRODUCER_START_URI}"/>
+    </bean>
+
+    <bean id="activemq" class="org.apache.camel.component.jms.JmsComponent">
+        <property name="connectionFactory" ref="amqSSL" />
+    </bean>
+
+    <camelContext id="producerConsumerContext" xmlns="http://camel.apache.org/schema/spring" autoStartup="true">
+        <routeBuilder ref="rb" />
+    </camelContext>
+
+</beans>

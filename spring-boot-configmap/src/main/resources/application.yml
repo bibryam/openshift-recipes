@@ -1,0 +1,2 @@
+spring.main.sources: com.ofbizian.MyFatJarRouter
+logging.level.com.atomikos: WARN

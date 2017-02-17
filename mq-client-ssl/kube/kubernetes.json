@@ -1,0 +1,231 @@
+{
+  "apiVersion" : "v1",
+  "kind" : "Template",
+  "labels" : { },
+  "metadata" : {
+    "annotations" : {
+      "description" : "Camel route using Spring XML in a standalone Java container",
+      "fabric8.mq-client-ssl/summary" : "Camel route using Spring XML in a standalone Java container",
+      "fabric8.mq-client-ssl/iconUrl" : "img/icons/java.svg"
+    },
+    "labels" : { },
+    "name" : "mq-client-ssl"
+  },
+  "objects" : [ {
+    "apiVersion" : "v1",
+    "kind" : "ImageStream",
+    "metadata" : {
+      "annotations" : { },
+      "labels" : {
+        "container" : "java",
+        "component" : "mq-client-ssl",
+        "provider" : "fabric8",
+        "project" : "mq-client-ssl",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "quickstarts"
+      },
+      "name" : "mq-client-ssl"
+    },
+    "spec" : {
+      "dockerImageRepository" : "locahost:5000/${IS_PULL_NAMESPACE}/amq-client-ssl",
+      "tags" : [ {
+        "annotations" : {
+          "tags" : "${IS_TAG}"
+        },
+        "from" : {
+          "kind" : "ImageStreamTag",
+          "name" : "amq-client-ssl"
+        },
+        "name" : "${IS_TAG}"
+      } ]
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "BuildConfig",
+    "metadata" : {
+      "annotations" : { },
+      "labels" : {
+        "app" : "amq-client-ssl",
+        "project" : "amq-client-ssl",
+        "version" : "1.0.0-SNAPSHOT",
+        "group" : "ofbizian"
+      },
+      "name" : "amq-client-ssl"
+    },
+    "spec" : {
+      "output" : {
+        "to" : {
+          "kind" : "ImageStreamTag",
+          "name" : "amq-client-ssl:${IS_TAG}"
+        }
+      },
+      "source" : {
+        "git" : {
+          "uri" : "https://anonymous:anonymous@github.com/bibryam/fis-example.git"
+        },
+        "images" : [ ],
+        "secrets" : [ ],
+        "type" : "Git"
+      },
+      "strategy" : {
+        "sourceStrategy" : {
+          "env" : [ ],
+          "from" : {
+            "kind" : "ImageStreamTag",
+            "name" : "fis-java-openshift:1.0",
+            "namespace" : "openshift"
+          }
+        },
+        "type" : "Source"
+      },
+      "triggers" : [ {
+        "type" : "ImageChange"
+      } ]
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "DeploymentConfig",
+    "metadata" : {
+      "annotations" : {
+        "fabric8.io/git-commit" : "acbe5fa8d1e305aeacdd758ab7d48bcdfafb653f",
+        "fabric8.io/git-branch" : "master"
+      },
+      "labels" : {
+        "container" : "java",
+        "component" : "mq-client-ssl",
+        "provider" : "fabric8",
+        "project" : "mq-client-ssl",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "quickstarts"
+      },
+      "name" : "mq-client-ssl"
+    },
+    "spec" : {
+      "replicas" : 1,
+      "selector" : {
+        "app" : "amq-client-ssl",
+        "deploymentconfig" : "amq-client-ssl"
+      },
+      "strategy" : {
+        "annotations" : { },
+        "labels" : { },
+        "rollingParams" : {
+          "maxSurge" : "30%",
+          "maxUnavailable" : "20%",
+          "timeoutSeconds" : 240
+        },
+        "type" : "Rolling"
+      },
+      "template" : {
+        "metadata" : {
+          "annotations" : { },
+          "labels" : {
+            "container" : "java",
+            "component" : "mq-client-ssl",
+            "provider" : "fabric8",
+            "project" : "mq-client-ssl",
+            "version" : "1.0-SNAPSHOT",
+            "group" : "quickstarts"
+          }
+        },
+        "spec" : {
+          "containers" : [ {
+            "args" : [ ],
+            "command" : [ ],
+            "env" : [ {
+              "name" : "BROKER_URL",
+              "value" : "${BROKER_URL}"
+            }, {
+              "name" : "BROKER_USERNAME",
+              "value" : "${BROKER_USERNAME}"
+            }, {
+              "name" : "BROKER_PASSWORD",
+              "value" : "${BROKER_PASSWORD}"
+            }, {
+              "name" : "BROKER_TRUSTSTORE_PASSWORD",
+              "value" : "${BROKER_TRUSTSTORE_PASSWORD}"
+            }, {
+              "name" : "BROKER_TRUSTSTORE_FILE",
+              "value" : "${BROKER_TRUSTSTORE_FILE}"
+            }, {
+              "name" : "AMQ_CLIENT_TYPE",
+              "value" : "${AMQ_CLIENT_TYPE}"
+            }, {
+              "name" : "AMQ_CONSUMER_PRODUCER_START_URI",
+              "value" : "${AMQ_CONSUMER_PRODUCER_START_URI}"
+            }, {
+              "name" : "AMQ_CONSUMER_PRODUCER_END_URI",
+              "value" : "${AMQ_CONSUMER_PRODUCER_END_URI}"
+            } ],
+            "image" : "${IS_PULL_NAMESPACE}/amq-client-ssl:latest",
+            "imagePullPolicy" : "Always",
+            "name" : "amq-client-ssl",
+            "ports" : [ {
+              "containerPort" : 8778,
+              "name" : "jolokia",
+              "protocol" : "TCP"
+            } ],
+            "volumeMounts" : [ {
+              "mountPath" : "/var/run/secrets/truststore",
+              "name" : "truststore",
+              "readOnly" : true
+            } ]
+          } ],
+          "imagePullSecrets" : [ ],
+          "nodeSelector" : { },
+          "restartPolicy" : "Always",
+          "volumes" : [ {
+            "name" : "truststore",
+            "secret" : {
+              "secretName" : "client-truststore"
+            }
+          } ]
+        }
+      },
+      "triggers" : [ {
+        "type" : "ConfigChange"
+      }, {
+        "imageChangeParams" : {
+          "automatic" : true,
+          "containerNames" : [ "amq-client-ssl" ],
+          "from" : {
+            "kind" : "ImageStreamTag",
+            "name" : "amq-client-ssl:latest"
+          }
+        },
+        "type" : "ImageChange"
+      } ]
+    }
+  } ],
+  "parameters" : [ {
+    "name" : "AMQ_CLIENT_TYPE",
+    "value" : "consumer"
+  }, {
+    "name" : "IS_TAG",
+    "value" : "latest"
+  }, {
+    "name" : "BROKER_TRUSTSTORE_FILE",
+    "value" : "keys/client.ks"
+  }, {
+    "name" : "BROKER_TRUSTSTORE_PASSWORD",
+    "value" : "password"
+  }, {
+    "name" : "BROKER_URL",
+    "value" : "tcp://localhost:61616"
+  }, {
+    "name" : "BROKER_USERNAME",
+    "value" : "admin"
+  }, {
+    "name" : "AMQ_CONSUMER_PRODUCER_START_URI",
+    "value" : "activemq:queue:TEST.FOO"
+  }, {
+    "name" : "BROKER_PASSWORD",
+    "value" : "admin"
+  }, {
+    "name" : "AMQ_CONSUMER_PRODUCER_END_URI",
+    "value" : "log:things?showAll=true"
+  }, {
+    "name" : "IS_PULL_NAMESPACE",
+    "value" : "amq-ldap"
+  } ]
+}
